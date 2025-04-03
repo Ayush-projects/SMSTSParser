@@ -4,10 +4,6 @@
 # Description: Modern SMSTS log parser with advanced analysis capabilities
 
 #Requires -Version 7.0
-#Requires -RunAsAdministrator
-
-using namespace System.Windows.Forms
-using namespace System.Drawing
 
 # Import required modules
 Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop
@@ -151,15 +147,15 @@ class SMSTSAnalyzer {
 
 # UI Class
 class SMSTSParserUI {
-    [Form]$MainForm
+    [System.Windows.Forms.Form]$MainForm
     [SMSTSAnalyzer]$Analyzer
-    [Button]$SelectFileButton
-    [Button]$AnalyzeButton
-    [Button]$ExportButton
-    [TabControl]$TabControl
-    [TabPage]$SummaryTab
-    [TabPage]$DetailsTab
-    [TabPage]$TimelineTab
+    [System.Windows.Forms.Button]$SelectFileButton
+    [System.Windows.Forms.Button]$AnalyzeButton
+    [System.Windows.Forms.Button]$ExportButton
+    [System.Windows.Forms.TabControl]$TabControl
+    [System.Windows.Forms.TabPage]$SummaryTab
+    [System.Windows.Forms.TabPage]$DetailsTab
+    [System.Windows.Forms.TabPage]$TimelineTab
     
     SMSTSParserUI() {
         $this.Analyzer = [SMSTSAnalyzer]::new()
@@ -167,10 +163,10 @@ class SMSTSParserUI {
     }
     
     [void]InitializeUI() {
-        $this.MainForm = New-Object Form
+        $this.MainForm = New-Object System.Windows.Forms.Form
         $this.MainForm.Text = "SMSTS Log Parser"
-        $this.MainForm.Size = New-Object Size(1200, 800)
-        $this.MainForm.StartPosition = [FormStartPosition]::CenterScreen
+        $this.MainForm.Size = New-Object System.Drawing.Size(1200, 800)
+        $this.MainForm.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
         
         # Create controls
         $this.CreateControls()
@@ -179,40 +175,40 @@ class SMSTSParserUI {
     
     [void]CreateControls() {
         # Buttons
-        $this.SelectFileButton = New-Object Button
+        $this.SelectFileButton = New-Object System.Windows.Forms.Button
         $this.SelectFileButton.Text = "Select Log File"
-        $this.SelectFileButton.Size = New-Object Size(200, 30)
+        $this.SelectFileButton.Size = New-Object System.Drawing.Size(200, 30)
         $this.SelectFileButton.Add_Click({ $this.SelectLogFile() })
         
-        $this.AnalyzeButton = New-Object Button
+        $this.AnalyzeButton = New-Object System.Windows.Forms.Button
         $this.AnalyzeButton.Text = "Analyze Log"
-        $this.AnalyzeButton.Size = New-Object Size(200, 30)
+        $this.AnalyzeButton.Size = New-Object System.Drawing.Size(200, 30)
         $this.AnalyzeButton.Enabled = $false
         $this.AnalyzeButton.Add_Click({ $this.AnalyzeLog() })
         
-        $this.ExportButton = New-Object Button
+        $this.ExportButton = New-Object System.Windows.Forms.Button
         $this.ExportButton.Text = "Export Report"
-        $this.ExportButton.Size = New-Object Size(200, 30)
+        $this.ExportButton.Size = New-Object System.Drawing.Size(200, 30)
         $this.ExportButton.Enabled = $false
         $this.ExportButton.Add_Click({ $this.ExportReport() })
         
         # Tabs
-        $this.TabControl = New-Object TabControl
-        $this.TabControl.Dock = [DockStyle]::Fill
+        $this.TabControl = New-Object System.Windows.Forms.TabControl
+        $this.TabControl.Dock = [System.Windows.Forms.DockStyle]::Fill
         
-        $this.SummaryTab = New-Object TabPage
+        $this.SummaryTab = New-Object System.Windows.Forms.TabPage
         $this.SummaryTab.Text = "Summary"
         
-        $this.DetailsTab = New-Object TabPage
+        $this.DetailsTab = New-Object System.Windows.Forms.TabPage
         $this.DetailsTab.Text = "Details"
         
-        $this.TimelineTab = New-Object TabPage
+        $this.TimelineTab = New-Object System.Windows.Forms.TabPage
         $this.TimelineTab.Text = "Timeline"
     }
     
     [void]SetupLayout() {
-        $leftPanel = New-Object Panel
-        $leftPanel.Dock = [DockStyle]::Left
+        $leftPanel = New-Object System.Windows.Forms.Panel
+        $leftPanel.Dock = [System.Windows.Forms.DockStyle]::Left
         $leftPanel.Width = 220
         
         $leftPanel.Controls.Add($this.SelectFileButton)
@@ -228,11 +224,11 @@ class SMSTSParserUI {
     }
     
     [void]SelectLogFile() {
-        $dialog = New-Object OpenFileDialog
+        $dialog = New-Object System.Windows.Forms.OpenFileDialog
         $dialog.Filter = "SMSTS Log Files (*.log)|*.log|All Files (*.*)|*.*"
         $dialog.Title = "Select SMSTS Log File"
         
-        if ($dialog.ShowDialog() -eq [DialogResult]::OK) {
+        if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
             try {
                 $this.Analyzer.AnalyzeLog($dialog.FileName)
                 $this.AnalyzeButton.Enabled = $true
@@ -240,7 +236,7 @@ class SMSTSParserUI {
             }
             catch {
                 Write-Log "Error selecting log file: $_" -Level Error
-                [MessageBox]::Show("Error loading log file: $_", "Error", [MessageBoxButtons]::OK, [MessageBoxIcon]::Error)
+                [System.Windows.Forms.MessageBox]::Show("Error loading log file: $_", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         }
     }
@@ -253,7 +249,7 @@ class SMSTSParserUI {
         }
         catch {
             Write-Log "Error during analysis: $_" -Level Error
-            [MessageBox]::Show("Error during analysis: $_", "Error", [MessageBoxButtons]::OK, [MessageBoxIcon]::Error)
+            [System.Windows.Forms.MessageBox]::Show("Error during analysis: $_", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
     }
     
@@ -285,10 +281,10 @@ Error Analysis
 Unique Error Codes: $($this.Analyzer.ErrorCodes.Count)
 "@
         
-        $label = New-Object Label
+        $label = New-Object System.Windows.Forms.Label
         $label.Text = $summaryText
         $label.AutoSize = $true
-        $label.Location = New-Object Point(10, 10)
+        $label.Location = New-Object System.Drawing.Point(10, 10)
         
         $this.SummaryTab.Controls.Add($label)
     }
@@ -296,15 +292,15 @@ Unique Error Codes: $($this.Analyzer.ErrorCodes.Count)
     [void]UpdateDetailsTab() {
         $this.DetailsTab.Controls.Clear()
         
-        $listView = New-Object ListView
-        $listView.Dock = [DockStyle]::Fill
-        $listView.View = [View]::Details
+        $listView = New-Object System.Windows.Forms.ListView
+        $listView.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $listView.View = [System.Windows.Forms.View]::Details
         $listView.Columns.Add("Time", 150)
         $listView.Columns.Add("Status", 100)
         $listView.Columns.Add("Message", 500)
         
         foreach ($step in $this.Analyzer.AnalysisResults.Timeline) {
-            $item = New-Object ListViewItem($step.Time.ToString())
+            $item = New-Object System.Windows.Forms.ListViewItem($step.Time.ToString())
             $item.SubItems.Add($step.Type)
             $item.SubItems.Add($step.Message)
             $listView.Items.Add($item)
@@ -316,20 +312,20 @@ Unique Error Codes: $($this.Analyzer.ErrorCodes.Count)
     [void]UpdateTimelineTab() {
         $this.TimelineTab.Controls.Clear()
         
-        $chart = New-Object Chart
-        $chart.Dock = [DockStyle]::Fill
+        $label = New-Object System.Windows.Forms.Label
+        $label.Text = "Timeline visualization will be implemented in future versions"
+        $label.AutoSize = $true
+        $label.Location = New-Object System.Drawing.Point(10, 10)
         
-        # Add chart implementation here
-        
-        $this.TimelineTab.Controls.Add($chart)
+        $this.TimelineTab.Controls.Add($label)
     }
     
     [void]ExportReport() {
-        $dialog = New-Object SaveFileDialog
+        $dialog = New-Object System.Windows.Forms.SaveFileDialog
         $dialog.Filter = "HTML Report (*.html)|*.html|CSV Report (*.csv)|*.csv"
         $dialog.Title = "Export Analysis Report"
         
-        if ($dialog.ShowDialog() -eq [DialogResult]::OK) {
+        if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
             try {
                 switch ([System.IO.Path]::GetExtension($dialog.FileName)) {
                     '.html' { $this.ExportHTMLReport($dialog.FileName) }
@@ -339,7 +335,7 @@ Unique Error Codes: $($this.Analyzer.ErrorCodes.Count)
             }
             catch {
                 Write-Log "Error exporting report: $_" -Level Error
-                [MessageBox]::Show("Error exporting report: $_", "Error", [MessageBoxButtons]::OK, [MessageBoxIcon]::Error)
+                [System.Windows.Forms.MessageBox]::Show("Error exporting report: $_", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         }
     }
@@ -420,11 +416,11 @@ Unique Error Codes: $($this.Analyzer.ErrorCodes.Count)
 # Main execution
 try {
     Write-Log "Starting SMSTS Log Parser"
-    $ui = [SMSTSAnalyzerUI]::new()
+    $ui = [SMSTSParserUI]::new()
     $ui.Show()
     Write-Log "Application closed successfully"
 }
 catch {
     Write-Log "Fatal error: $_" -Level Error
-    [MessageBox]::Show("Fatal error: $_", "Error", [MessageBoxButtons]::OK, [MessageBoxIcon]::Error)
+    [System.Windows.Forms.MessageBox]::Show("Fatal error: $_", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
 } 
