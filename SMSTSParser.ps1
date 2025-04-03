@@ -3,6 +3,13 @@
 # Version: 2.0
 # Description: Enterprise-grade SMSTS log parser with detailed analysis and modern UI
 
+# Ensure we're running in STA mode for Windows Forms
+if ([System.Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
+    Write-Host "This script requires STA mode. Please run PowerShell with -STA parameter."
+    exit
+}
+
+# Load required assemblies
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -21,11 +28,19 @@ $script:analysisResults = @{
     PerformanceMetrics = @{}
 }
 
+# Global form controls
+$script:form = $null
+$script:btnAnalyze = $null
+$script:btnExport = $null
+$script:tabSummary = $null
+$script:tabDetails = $null
+$script:tabTimeline = $null
+
 function Initialize-UI {
-    $form = New-Object System.Windows.Forms.Form
-    $form.Text = "SMSTS Log Parser"
-    $form.Size = New-Object System.Drawing.Size(1200,800)
-    $form.StartPosition = "CenterScreen"
+    $script:form = New-Object System.Windows.Forms.Form
+    $script:form.Text = "SMSTS Log Parser"
+    $script:form.Size = New-Object System.Drawing.Size(1200,800)
+    $script:form.StartPosition = "CenterScreen"
     
     # Create main layout
     $mainLayout = New-Object System.Windows.Forms.TableLayoutPanel
@@ -47,53 +62,53 @@ function Initialize-UI {
     $btnSelectFile.Add_Click({ Select-LogFile })
     
     # Analysis Button
-    $btnAnalyze = New-Object System.Windows.Forms.Button
-    $btnAnalyze.Text = "Analyze Log"
-    $btnAnalyze.Location = New-Object System.Drawing.Point(10, 50)
-    $btnAnalyze.Size = New-Object System.Drawing.Size(200, 30)
-    $btnAnalyze.Enabled = $false
-    $btnAnalyze.Add_Click({ Analyze-SMSTSLog })
+    $script:btnAnalyze = New-Object System.Windows.Forms.Button
+    $script:btnAnalyze.Text = "Analyze Log"
+    $script:btnAnalyze.Location = New-Object System.Drawing.Point(10, 50)
+    $script:btnAnalyze.Size = New-Object System.Drawing.Size(200, 30)
+    $script:btnAnalyze.Enabled = $false
+    $script:btnAnalyze.Add_Click({ Analyze-SMSTSLog })
     
     # Export Button
-    $btnExport = New-Object System.Windows.Forms.Button
-    $btnExport.Text = "Export Analysis"
-    $btnExport.Location = New-Object System.Drawing.Point(10, 90)
-    $btnExport.Size = New-Object System.Drawing.Size(200, 30)
-    $btnExport.Enabled = $false
-    $btnExport.Add_Click({ Export-Analysis })
+    $script:btnExport = New-Object System.Windows.Forms.Button
+    $script:btnExport.Text = "Export Analysis"
+    $script:btnExport.Location = New-Object System.Drawing.Point(10, 90)
+    $script:btnExport.Size = New-Object System.Drawing.Size(200, 30)
+    $script:btnExport.Enabled = $false
+    $script:btnExport.Add_Click({ Export-Analysis })
     
     # Add controls to left panel
     $leftPanel.Controls.Add($btnSelectFile)
-    $leftPanel.Controls.Add($btnAnalyze)
-    $leftPanel.Controls.Add($btnExport)
+    $leftPanel.Controls.Add($script:btnAnalyze)
+    $leftPanel.Controls.Add($script:btnExport)
     
     # Right Panel - Results
     $rightPanel = New-Object System.Windows.Forms.TabControl
     $rightPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
     
     # Create tabs
-    $tabSummary = New-Object System.Windows.Forms.TabPage
-    $tabSummary.Text = "Summary"
+    $script:tabSummary = New-Object System.Windows.Forms.TabPage
+    $script:tabSummary.Text = "Summary"
     
-    $tabDetails = New-Object System.Windows.Forms.TabPage
-    $tabDetails.Text = "Detailed Analysis"
+    $script:tabDetails = New-Object System.Windows.Forms.TabPage
+    $script:tabDetails.Text = "Detailed Analysis"
     
-    $tabTimeline = New-Object System.Windows.Forms.TabPage
-    $tabTimeline.Text = "Timeline"
+    $script:tabTimeline = New-Object System.Windows.Forms.TabPage
+    $script:tabTimeline.Text = "Timeline"
     
     # Add tabs to control
-    $rightPanel.TabPages.Add($tabSummary)
-    $rightPanel.TabPages.Add($tabDetails)
-    $rightPanel.TabPages.Add($tabTimeline)
+    $rightPanel.TabPages.Add($script:tabSummary)
+    $rightPanel.TabPages.Add($script:tabDetails)
+    $rightPanel.TabPages.Add($script:tabTimeline)
     
     # Add panels to main layout
     $mainLayout.Controls.Add($leftPanel, 0, 0)
     $mainLayout.Controls.Add($rightPanel, 1, 0)
     
     # Add main layout to form
-    $form.Controls.Add($mainLayout)
+    $script:form.Controls.Add($mainLayout)
     
-    return $form
+    return $script:form
 }
 
 function Select-LogFile {
@@ -103,7 +118,7 @@ function Select-LogFile {
     
     if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $script:logContent = Get-Content $openFileDialog.FileName
-        $btnAnalyze.Enabled = $true
+        $script:btnAnalyze.Enabled = $true
         Update-Status "Log file loaded successfully"
     }
 }
@@ -154,7 +169,7 @@ function Analyze-SMSTSLog {
     
     # Update UI with results
     Update-AnalysisUI
-    $btnExport.Enabled = $true
+    $script:btnExport.Enabled = $true
 }
 
 function Update-AnalysisUI {
@@ -165,15 +180,15 @@ function Update-AnalysisUI {
     $summaryText += "Failed Steps: $($script:analysisResults.FailedSteps.Count)`n"
     $summaryText += "Warnings: $($script:analysisResults.Warnings.Count)`n"
     
-    $tabSummary.Controls.Clear()
+    $script:tabSummary.Controls.Clear()
     $summaryLabel = New-Object System.Windows.Forms.Label
     $summaryLabel.Text = $summaryText
     $summaryLabel.AutoSize = $true
     $summaryLabel.Location = New-Object System.Drawing.Point(10, 10)
-    $tabSummary.Controls.Add($summaryLabel)
+    $script:tabSummary.Controls.Add($summaryLabel)
     
     # Update Details Tab
-    $tabDetails.Controls.Clear()
+    $script:tabDetails.Controls.Clear()
     $detailsListView = New-Object System.Windows.Forms.ListView
     $detailsListView.Dock = [System.Windows.Forms.DockStyle]::Fill
     $detailsListView.View = [System.Windows.Forms.View]::Details
@@ -195,7 +210,7 @@ function Update-AnalysisUI {
         $detailsListView.Items.Add($item)
     }
     
-    $tabDetails.Controls.Add($detailsListView)
+    $script:tabDetails.Controls.Add($detailsListView)
 }
 
 function Export-Analysis {
@@ -308,5 +323,14 @@ function Update-Status {
 }
 
 # Main execution
-$form = Initialize-UI
-$form.ShowDialog() 
+try {
+    $form = Initialize-UI
+    if ($form -ne $null) {
+        [void]$form.ShowDialog()
+    } else {
+        Write-Host "Failed to initialize the form."
+    }
+} catch {
+    Write-Host "Error: $_"
+    Write-Host "Stack Trace: $($_.ScriptStackTrace)"
+} 
