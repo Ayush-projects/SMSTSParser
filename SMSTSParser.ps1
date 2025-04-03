@@ -9,13 +9,19 @@ if ([System.Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
     exit
 }
 
-# Load required assemblies
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-
 # Import required modules
-Import-Module Microsoft.PowerShell.Utility
-Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Utility -ErrorAction SilentlyContinue
+Import-Module Microsoft.PowerShell.Management -ErrorAction SilentlyContinue
+Import-Module Microsoft.PowerShell.Host -ErrorAction SilentlyContinue
+
+# Load required assemblies
+try {
+    Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+    Add-Type -AssemblyName System.Drawing -ErrorAction Stop
+} catch {
+    Write-Host "Error loading required assemblies: $_"
+    exit
+}
 
 # Global variables
 $script:logContent = $null
@@ -37,78 +43,86 @@ $script:tabDetails = $null
 $script:tabTimeline = $null
 
 function Initialize-UI {
-    $script:form = New-Object System.Windows.Forms.Form
-    $script:form.Text = "SMSTS Log Parser"
-    $script:form.Size = New-Object System.Drawing.Size(1200,800)
-    $script:form.StartPosition = "CenterScreen"
-    
-    # Create main layout
-    $mainLayout = New-Object System.Windows.Forms.TableLayoutPanel
-    $mainLayout.Dock = [System.Windows.Forms.DockStyle]::Fill
-    $mainLayout.ColumnCount = 2
-    $mainLayout.RowCount = 1
-    $mainLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
-    $mainLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 70)))
-    
-    # Left Panel - Controls
-    $leftPanel = New-Object System.Windows.Forms.Panel
-    $leftPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
-    
-    # File Selection Button
-    $btnSelectFile = New-Object System.Windows.Forms.Button
-    $btnSelectFile.Text = "Select SMSTS Log File"
-    $btnSelectFile.Location = New-Object System.Drawing.Point(10, 10)
-    $btnSelectFile.Size = New-Object System.Drawing.Size(200, 30)
-    $btnSelectFile.Add_Click({ Select-LogFile })
-    
-    # Analysis Button
-    $script:btnAnalyze = New-Object System.Windows.Forms.Button
-    $script:btnAnalyze.Text = "Analyze Log"
-    $script:btnAnalyze.Location = New-Object System.Drawing.Point(10, 50)
-    $script:btnAnalyze.Size = New-Object System.Drawing.Size(200, 30)
-    $script:btnAnalyze.Enabled = $false
-    $script:btnAnalyze.Add_Click({ Analyze-SMSTSLog })
-    
-    # Export Button
-    $script:btnExport = New-Object System.Windows.Forms.Button
-    $script:btnExport.Text = "Export Analysis"
-    $script:btnExport.Location = New-Object System.Drawing.Point(10, 90)
-    $script:btnExport.Size = New-Object System.Drawing.Size(200, 30)
-    $script:btnExport.Enabled = $false
-    $script:btnExport.Add_Click({ Export-Analysis })
-    
-    # Add controls to left panel
-    $leftPanel.Controls.Add($btnSelectFile)
-    $leftPanel.Controls.Add($script:btnAnalyze)
-    $leftPanel.Controls.Add($script:btnExport)
-    
-    # Right Panel - Results
-    $rightPanel = New-Object System.Windows.Forms.TabControl
-    $rightPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
-    
-    # Create tabs
-    $script:tabSummary = New-Object System.Windows.Forms.TabPage
-    $script:tabSummary.Text = "Summary"
-    
-    $script:tabDetails = New-Object System.Windows.Forms.TabPage
-    $script:tabDetails.Text = "Detailed Analysis"
-    
-    $script:tabTimeline = New-Object System.Windows.Forms.TabPage
-    $script:tabTimeline.Text = "Timeline"
-    
-    # Add tabs to control
-    $rightPanel.TabPages.Add($script:tabSummary)
-    $rightPanel.TabPages.Add($script:tabDetails)
-    $rightPanel.TabPages.Add($script:tabTimeline)
-    
-    # Add panels to main layout
-    $mainLayout.Controls.Add($leftPanel, 0, 0)
-    $mainLayout.Controls.Add($rightPanel, 1, 0)
-    
-    # Add main layout to form
-    $script:form.Controls.Add($mainLayout)
-    
-    return $script:form
+    try {
+        $script:form = New-Object -TypeName System.Windows.Forms.Form
+        $script:form.Text = "SMSTS Log Parser"
+        $script:form.Size = New-Object System.Drawing.Size(1200,800)
+        $script:form.StartPosition = "CenterScreen"
+        $script:form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
+        $script:form.MaximizeBox = $false
+        $script:form.MinimizeBox = $true
+        
+        # Create main layout
+        $mainLayout = New-Object -TypeName System.Windows.Forms.TableLayoutPanel
+        $mainLayout.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $mainLayout.ColumnCount = 2
+        $mainLayout.RowCount = 1
+        $mainLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
+        $mainLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 70)))
+        
+        # Left Panel - Controls
+        $leftPanel = New-Object -TypeName System.Windows.Forms.Panel
+        $leftPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+        
+        # File Selection Button
+        $btnSelectFile = New-Object -TypeName System.Windows.Forms.Button
+        $btnSelectFile.Text = "Select SMSTS Log File"
+        $btnSelectFile.Location = New-Object System.Drawing.Point(10, 10)
+        $btnSelectFile.Size = New-Object System.Drawing.Size(200, 30)
+        $btnSelectFile.Add_Click({ Select-LogFile })
+        
+        # Analysis Button
+        $script:btnAnalyze = New-Object -TypeName System.Windows.Forms.Button
+        $script:btnAnalyze.Text = "Analyze Log"
+        $script:btnAnalyze.Location = New-Object System.Drawing.Point(10, 50)
+        $script:btnAnalyze.Size = New-Object System.Drawing.Size(200, 30)
+        $script:btnAnalyze.Enabled = $false
+        $script:btnAnalyze.Add_Click({ Analyze-SMSTSLog })
+        
+        # Export Button
+        $script:btnExport = New-Object -TypeName System.Windows.Forms.Button
+        $script:btnExport.Text = "Export Analysis"
+        $script:btnExport.Location = New-Object System.Drawing.Point(10, 90)
+        $script:btnExport.Size = New-Object System.Drawing.Size(200, 30)
+        $script:btnExport.Enabled = $false
+        $script:btnExport.Add_Click({ Export-Analysis })
+        
+        # Add controls to left panel
+        $leftPanel.Controls.Add($btnSelectFile)
+        $leftPanel.Controls.Add($script:btnAnalyze)
+        $leftPanel.Controls.Add($script:btnExport)
+        
+        # Right Panel - Results
+        $rightPanel = New-Object -TypeName System.Windows.Forms.TabControl
+        $rightPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+        
+        # Create tabs
+        $script:tabSummary = New-Object -TypeName System.Windows.Forms.TabPage
+        $script:tabSummary.Text = "Summary"
+        
+        $script:tabDetails = New-Object -TypeName System.Windows.Forms.TabPage
+        $script:tabDetails.Text = "Detailed Analysis"
+        
+        $script:tabTimeline = New-Object -TypeName System.Windows.Forms.TabPage
+        $script:tabTimeline.Text = "Timeline"
+        
+        # Add tabs to control
+        $rightPanel.TabPages.Add($script:tabSummary)
+        $rightPanel.TabPages.Add($script:tabDetails)
+        $rightPanel.TabPages.Add($script:tabTimeline)
+        
+        # Add panels to main layout
+        $mainLayout.Controls.Add($leftPanel, 0, 0)
+        $mainLayout.Controls.Add($rightPanel, 1, 0)
+        
+        # Add main layout to form
+        $script:form.Controls.Add($mainLayout)
+        
+        return $script:form
+    } catch {
+        Write-Host "Error initializing UI: $_"
+        return $null
+    }
 }
 
 function Select-LogFile {
@@ -324,9 +338,10 @@ function Update-Status {
 
 # Main execution
 try {
+    # Create and show the form
     $form = Initialize-UI
     if ($form -ne $null) {
-        [void]$form.ShowDialog()
+        $form.ShowDialog() | Out-Null
     } else {
         Write-Host "Failed to initialize the form."
     }
